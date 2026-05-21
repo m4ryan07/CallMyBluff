@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CallMyBluff — AI Text Detector</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── Animated Background ── -->
+<div class="bg-grid"></div>
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<div class="bg-orb orb-3"></div>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <span class="joker-icon">🃏</span>
+    <span class="nav-title">CallMyBluff</span>
+  </div>
+  <div class="nav-badge">Stylometric AI Detection</div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      Neural Writing Analysis
+      <span class="dot"></span>
+    </div>
+    <h1 class="hero-title">
+      <span class="title-line-1">Can you</span>
+      <span class="title-line-2">BLUFF</span>
+      <span class="title-line-3">the machine?</span>
+    </h1>
+    <p class="hero-sub">
+      Paste any text. Our model analyzes <em>how</em> it's written —
+      sentence rhythm, vocabulary patterns, punctuation density —
+      to determine if a human or an AI holds the cards.
+    </p>
+  </div>
+</section>
+
+<!-- ── Main App ── -->
+<main class="app-grid">
+
+  <!-- Left: Input Card -->
+  <div class="card card-input">
+    <div class="card-header">
+      <span class="card-icon">✍️</span>
+      <div>
+        <div class="card-title">Your Text</div>
+        <div class="card-sub">Paste anything — essay, email, article</div>
+      </div>
+      <div class="word-counter" id="wordCounter">0 words</div>
+    </div>
+
+    <textarea
+      id="textInput"
+      placeholder="Start typing or paste text here...
+
+The model will analyze:
+  • Sentence length variance (burstiness)
+  • Vocabulary diversity (type-token ratio)
+  • Contraction & punctuation patterns
+  • Rhetorical question frequency
+
+Minimum 30 words for reliable analysis."
+    ></textarea>
+
+    <div class="input-footer">
+      <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+        <span class="btn-text">
+          <span class="btn-icon">🔍</span>
+          Analyze Writing Style
+        </span>
+        <span class="btn-loader" style="display:none">
+          <span class="spinner"></span>
+          Analyzing...
+        </span>
+      </button>
+      <button class="btn-clear" onclick="clearAll()">Clear</button>
+    </div>
+
+    <div class="error-box" id="errorBox" style="display:none"></div>
+  </div>
+
+  <!-- Right: Results -->
+  <div class="results-col" id="resultsCol">
+
+    <!-- Empty State -->
+    <div class="card card-empty" id="emptyState">
+      <div class="joker-large">🃏</div>
+      <div class="empty-title">The Joker awaits your move</div>
+      <div class="empty-sub">Paste text on the left and hit Analyze<br>to reveal what the machine thinks.</div>
+      <div class="empty-suits">♠ ♣ ♥ ♦</div>
+    </div>
+
+    <!-- Verdict Card (hidden until analysis) -->
+    <div class="card card-verdict" id="verdictCard" style="display:none">
+      <div class="verdict-glow" id="verdictGlow"></div>
+      <div class="verdict-top">
+        <div class="verdict-joker" id="verdictJoker"></div>
+        <div class="verdict-text">
+          <div class="verdict-label" id="verdictLabel"></div>
+          <div class="verdict-sublabel" id="verdictSub"></div>
+        </div>
+        <div class="verdict-confidence" id="verdictConf"></div>
+      </div>
+
+      <!-- Probability Bar -->
+      <div class="prob-section">
+        <div class="prob-labels">
+          <span class="prob-label-human">Human</span>
+          <span class="prob-label-ai">AI</span>
+        </div>
+        <div class="prob-track">
+          <div class="prob-fill-human" id="probHuman"></div>
+          <div class="prob-fill-ai"    id="probAI"></div>
+        </div>
+        <div class="prob-values">
+          <span class="prob-val-human" id="probHumanVal"></span>
+          <span class="prob-val-ai"    id="probAIVal"></span>
+        </div>
+      </div>
+
+      <!-- Insight Tags -->
+      <div class="insights" id="insightTags"></div>
+    </div>
+
+    <!-- Metrics Row -->
+    <div class="metrics-row" id="metricsRow" style="display:none">
+      <div class="metric-card">
+        <div class="metric-icon">🌊</div>
+        <div class="metric-val" id="mBurstiness">—</div>
+        <div class="metric-lbl">Burstiness</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🗣️</div>
+        <div class="metric-val" id="mContractions">—</div>
+        <div class="metric-lbl">Contractions</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">📚</div>
+        <div class="metric-val" id="mTTR">—</div>
+        <div class="metric-lbl">Vocab Diversity</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">📝</div>
+        <div class="metric-val" id="mWords">—</div>
+        <div class="metric-lbl">Word Count</div>
+      </div>
+    </div>
+
+    <!-- Feature Comparison Card -->
+    <div class="card card-features" id="featuresCard" style="display:none">
+      <div class="card-header">
+        <span class="card-icon">📊</span>
+        <div>
+          <div class="card-title">Feature Breakdown</div>
+          <div class="card-sub">Your text vs human & AI averages</div>
+        </div>
+      </div>
+      <div class="features-grid" id="featuresGrid"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ── How It Works ── -->
+<section class="how-section">
+  <div class="how-title">How the machine reads you</div>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">01</div>
+      <div class="how-icon">🌊</div>
+      <div class="how-name">Burstiness</div>
+      <div class="how-desc">Humans write in waves — short punchy sentences mixed with long complex ones. AI writes in a flat, uniform rhythm.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">02</div>
+      <div class="how-icon">🗣️</div>
+      <div class="how-name">Contractions</div>
+      <div class="how-desc">Don't, I've, they're — humans speak naturally. AI defaults to formal "do not", "I have", "they are".</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">03</div>
+      <div class="how-icon">📚</div>
+      <div class="how-name">Vocab Diversity</div>
+      <div class="how-desc">AI artificially avoids repetition, producing unnaturally high type-token ratios. Humans repeat words organically.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">04</div>
+      <div class="how-icon">❓</div>
+      <div class="how-name">Rhetorical Questions</div>
+      <div class="how-desc">Humans ask "Have you ever thought about...?" AI rarely poses questions unless explicitly prompted.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <span class="footer-logo">🃏 CallMyBluff</span>
+  <span class="footer-sep">·</span>
+  <span>Stylometric AI Detection</span>
+  <span class="footer-sep">·</span>
+  <span>Built with Scikit-Learn · NLTK · Flask</span>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
